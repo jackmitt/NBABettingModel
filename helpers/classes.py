@@ -1,5 +1,5 @@
 import pandas as pd
-import numpy and np
+import numpy as np
 
 class Database:
     def __init__(self, keys):
