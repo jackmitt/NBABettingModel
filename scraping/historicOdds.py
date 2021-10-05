@@ -34,6 +34,7 @@ def historicOdds(A, yearStart, yearEnd):
             browser.find_element_by_xpath("//*[@id='pagination']/a[13]/span").click()
             time.sleep(3)
 
+    counter = 0
     for game in gameUrls:
         browser.get(game)
         soup = BeautifulSoup(browser.page_source, 'html.parser')
@@ -46,18 +47,27 @@ def historicOdds(A, yearStart, yearEnd):
         #away
         A.addCellToRow(soup.find(id="col-content").find("h1").text.split(" - ")[1])
         #moneylines
+        pinnacleFound = False
         for row in soup.find(class_="table-container").find_all("tr"):
             try:
                 sportsbook = row.find(class_="name").text
             except:
                 continue
             if (sportsbook == "Pinnacle"):
+                pinnacleFound = True
                 #home
                 A.addCellToRow(row.find_all("td")[1].text)
                 #away
                 A.addCellToRow(row.find_all("td")[2].text)
+        if (not pinnacleFound):
+            A.addCellToRow(np.nan)
+            A.addCellToRow(np.nan)
         #spread stuff
-        browser.find_element_by_xpath("//*[@id='bettype-tabs']/ul/li[4]/a/span").click()
+        try:
+            browser.find_element_by_xpath("//*[@id='bettype-tabs']/ul/li[4]/a/span").click()
+        except:
+            A.trashRow()
+            continue
         time.sleep(2)
         soup = BeautifulSoup(browser.page_source, 'html.parser')
         bestPayout = -1
@@ -106,7 +116,11 @@ def historicOdds(A, yearStart, yearEnd):
         A.addCellToRow(soup.find(class_="result").find("strong").text.split(":")[0])
         #away score
         A.addCellToRow(soup.find(class_="result").find("strong").text.split(":")[1])
+        A.addCellToRow(game)
         A.appendRow()
+        counter += 1
+        if (counter % 30 == 1):
+            A.dictToCsv("./csv_data/bettingLines.csv")
 
     A.dictToCsv("./csv_data/bettingLines.csv")
     broswer.close()

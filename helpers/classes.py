@@ -23,6 +23,9 @@ class Database:
                 self.dict[self.dict.keys()[i]].append(self.tempRow[i])
             self.tempRow = []
 
+    def trashRow(self):
+        self.tempRow = []
+
     def dictToCsv(self, pathName):
         self.df = pd.DataFrame.from_dict(self.dict)
         dfFinal = dfFinal.drop_duplicates()
