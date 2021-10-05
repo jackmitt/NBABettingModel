@@ -97,12 +97,14 @@ def historicOdds(A, yearStart, yearEnd):
         elif ("-" in bestSpread.find("a").text):
             A.addCellToRow(soup.find(id="col-content").find("h1").text.split(" - ")[0])
         else:
-            A.addCellToRow(0)
+            A.addCellToRow("Even")
         #spread
         if ("+" in bestSpread.find("a").text):
             A.addCellToRow(bestSpread.find("a").text.split("+")[1])
-        else:
+        elif ("-" in bestSpread.find("a").text):
             A.addCellToRow(bestSpread.find("a").text.split("-")[1])
+        else:
+            A.addCellToRow(0)
         #home spread odds
         A.addCellToRow(bestSpread.find_all("a")[1].text)
         #away spread odds
