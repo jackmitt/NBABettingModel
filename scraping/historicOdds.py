@@ -94,8 +94,10 @@ def historicOdds(A, yearStart, yearEnd):
         #favorite
         if ("+" in bestSpread.find("a").text):
             A.addCellToRow(soup.find(id="col-content").find("h1").text.split(" - ")[1])
-        else:
+        elif ("-" in bestSpread.find("a").text):
             A.addCellToRow(soup.find(id="col-content").find("h1").text.split(" - ")[0])
+        else:
+            A.addCellToRow(0)
         #spread
         if ("+" in bestSpread.find("a").text):
             A.addCellToRow(bestSpread.find("a").text.split("+")[1])
