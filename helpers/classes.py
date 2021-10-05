@@ -9,6 +9,9 @@ class Database:
             self.dict[key] = []
         self.tempRow = []
 
+    def initDictFromCsv(self, path):
+        self.dict = pd.read_csv(path, encoding = "ISO-8859-1").to_dict(orient="list")
+
     def addCellToRow(self, datum):
         if (len(self.tempRow) + 1 > len(self.dict)):
             raise ValueError("The row is already full")
@@ -20,7 +23,7 @@ class Database:
             raise ValueError("The row is not fully populated")
         else:
             for i in range(len(self.dict.keys())):
-                self.dict[self.dict.keys()[i]].append(self.tempRow[i])
+                self.dict[list(self.dict.keys())[i]].append(self.tempRow[i])
             self.tempRow = []
 
     def trashRow(self):

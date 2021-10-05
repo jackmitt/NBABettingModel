@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import numpy as np
 import time
+from os.path import exists
 
 
 ## Scrapes regular season closing betting lines from oddsportal (consensus average) for all seasons since 2008/2009 and saves them to a csv - Make sure you have chromedriver.exe for the correct version of Chrome
@@ -12,34 +13,40 @@ def historicOdds(A, yearStart, yearEnd):
     seasons = []
     for i in range(yearStart, yearEnd+1):
         seasons.append(str(i) + "-" + str(i+1))
-
-
-    gameUrls = []
     browser = webdriver.Chrome(executable_path='chromedriver.exe')
-    for season in seasons:
-        browser.get("https://www.oddsportal.com/basketball/usa/nba-" + season + "/results/")
-        browser.maximize_window()
-        for i in range(30):
-            soup = BeautifulSoup(browser.page_source, 'html.parser')
-            main = soup.find(class_=" table-main")
-            regSeason = False
-            for row in main.find_all("tr"):
-                if ("nob-border" in row["class"]):
-                    if ("Offs" in row.find("th").text or "Pre" in row.find("th").text):
-                        regSeason = False
-                    else:
-                        regSeason = True
-                if (regSeason and "deactivate" in row["class"]):
-                    gameUrls.append("https://www.oddsportal.com/" + row.find(class_="name table-participant").find("a")["href"])
-            browser.find_element_by_xpath("//*[@id='pagination']/a[13]/span").click()
-            time.sleep(3)
-    save = {}
-    save["urls"] = gameUrls
-    dfFinal = pd.DataFrame.from_dict(save)
-    dfFinal = dfFinal.drop_duplicates()
-    dfFinal.to_csv("./gameUrls.csv", index = False)
+    if (not exists("./gameUrls.csv")):
+        gameUrls = []
+        for season in seasons:
+            browser.get("https://www.oddsportal.com/basketball/usa/nba-" + season + "/results/")
+            browser.maximize_window()
+            for i in range(30):
+                soup = BeautifulSoup(browser.page_source, 'html.parser')
+                main = soup.find(class_=" table-main")
+                regSeason = False
+                for row in main.find_all("tr"):
+                    if ("nob-border" in row["class"]):
+                        if ("Offs" in row.find("th").text or "Pre" in row.find("th").text):
+                            regSeason = False
+                        else:
+                            regSeason = True
+                    if (regSeason and "deactivate" in row["class"]):
+                        gameUrls.append("https://www.oddsportal.com/" + row.find(class_="name table-participant").find("a")["href"])
+                browser.find_element_by_xpath("//*[@id='pagination']/a[13]/span").click()
+                time.sleep(3)
+        save = {}
+        save["urls"] = gameUrls
+        dfFinal = pd.DataFrame.from_dict(save)
+        dfFinal = dfFinal.drop_duplicates()
+        dfFinal.to_csv("./gameUrls.csv", index = False)
+    else:
+        gameUrls = pd.read_csv('./gameUrls.csv', encoding = "ISO-8859-1")["urls"].tolist()
 
     counter = 0
+    if (exists("./csv_data/bettingLines.csv")):
+        A.initDictFromCsv("./csv_data/bettingLines.csv")
+        scrapedGames = pd.read_csv('./csv_data/bettingLines.csv', encoding = "ISO-8859-1")["url"].tolist()
+        for game in scrapedGames:
+            gameUrls.remove(game)
     for game in gameUrls:
         browser.get(game)
         soup = BeautifulSoup(browser.page_source, 'html.parser')
@@ -112,11 +119,11 @@ def historicOdds(A, yearStart, yearEnd):
                 bestTotal = option
                 bestPayout = payout
         #O/U
-        A.addCellToRow(bestSpread.find("a").text.split("+")[1])
+        A.addCellToRow(bestTotal.find("a").text.split("+")[1])
         #over odds
-        A.addCellToRow(bestSpread.find_all("a")[1].text)
+        A.addCellToRow(bestTotal.find_all("a")[1].text)
         #under odds
-        A.addCellToRow(bestSpread.find_all("a")[2].text)
+        A.addCellToRow(bestTotal.find_all("a")[2].text)
         #home score
         A.addCellToRow(soup.find(class_="result").find("strong").text.split(":")[0])
         #away score
