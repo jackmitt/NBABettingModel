@@ -33,6 +33,11 @@ def historicOdds(A, yearStart, yearEnd):
                     gameUrls.append("https://www.oddsportal.com/" + row.find(class_="name table-participant").find("a")["href"])
             browser.find_element_by_xpath("//*[@id='pagination']/a[13]/span").click()
             time.sleep(3)
+    save = {}
+    save["urls"] = gameUrls
+    dfFinal = pd.DataFrame.from_dict(save)
+    dfFinal = dfFinal.drop_duplicates()
+    dfFinal.to_csv("./gameUrls.csv", index = False)
 
     counter = 0
     for game in gameUrls:

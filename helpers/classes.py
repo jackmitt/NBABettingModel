@@ -28,5 +28,5 @@ class Database:
 
     def dictToCsv(self, pathName):
         self.df = pd.DataFrame.from_dict(self.dict)
-        dfFinal = dfFinal.drop_duplicates()
-        dfFinal.to_csv(pathName, index = False)
+        self.df = self.df.drop_duplicates()
+        self.df.to_csv(pathName, index = False)
