@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 class Database:
-    def __init__(self, keys):
+    def __init__(self, keys = []):
         self.df = pd.DataFrame()
         self.dict = {}
         for key in keys:
@@ -11,6 +11,9 @@ class Database:
 
     def initDictFromCsv(self, path):
         self.dict = pd.read_csv(path, encoding = "ISO-8859-1").to_dict(orient="list")
+
+    def addColumn(self, colName):
+        self.dict[colName] = []
 
     def addCellToRow(self, datum):
         if (len(self.tempRow) + 1 > len(self.dict)):
@@ -33,3 +36,6 @@ class Database:
         self.df = pd.DataFrame.from_dict(self.dict)
         self.df = self.df.drop_duplicates()
         self.df.to_csv(pathName, index = False)
+
+    def printRow(self):
+        print(self.tempRow)
