@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
-from classes import Database
+from helpers import Database
 import datetime
+from helpers import standardizeTeamName
+from helpers import monthToInt
 
 #merges the entire match onto one row with stats denoted home and away
 def mergeMatches(read_path = './csv_data/raw/advanced_stats.csv', write_path = "./csv_data/mid_manipulation/merged_matches.csv", writeToCsv = True):
@@ -59,7 +61,8 @@ def preMatchAverages(read_path = './csv_data/mid_manipulation/merged_matches.csv
             seasonDict[row["Home"]] = {"OffRtg":[],"DefRtg":[],"OREB%":[],"DREB%":[],"TOV%":[],"STL%":[],"TS%":[],"dTS%":[],"PACE":[],"LastG":datetime.date(1999,5,7),"GP":0}
         if (row["Away"] not in seasonDict):
             seasonDict[row["Away"]] = {"OffRtg":[],"DefRtg":[],"OREB%":[],"DREB%":[],"TOV%":[],"STL%":[],"TS%":[],"dTS%":[],"PACE":[],"LastG":datetime.date(1999,5,7),"GP":0}
-        if (seasonDict[row["Away"]]["GP"] != 0 and seasonDict[row["Home"]]["GP"] != 0):
+        #more than 5 games played AND exclude covid bubble
+        if (seasonDict[row["Away"]]["GP"] >= 5 and seasonDict[row["Home"]]["GP"] >= 5 and (not datetime.date(int(row["Date"].split("/")[2]), int(row["Date"].split("/")[0]), int(row["Date"].split("/")[1])).month == 8)):
             A.addCellToRow(row["Date"])
             A.addCellToRow(row["Home"])
             A.addCellToRow(row["Away"])
@@ -109,6 +112,33 @@ def preMatchAverages(read_path = './csv_data/mid_manipulation/merged_matches.csv
         seasonDict[row["Away"]]["GP"] += 1
         seasonDict[row["Home"]]["GP"] += 1
 
+    if (writeToCsv):
+        A.dictToCsv(write_path)
+    return (A)
+
+def combineStatsAndBettingData(stats_path = './csv_data/mid_manipulation/pre_match_averages.csv', bets_path = './csv_data/raw/bettingLines.csv', write_path = './csv_data/mid_manipulation/combined_data.csv', writeToCsv = True):
+    bets = pd.read_csv(bets_path, encoding = "ISO-8859-1")
+    stats = pd.read_csv(stats_path, encoding = "ISO-8859-1")
+
+    A = Database(["Date","Home","Away","Home ML","Away ML","Favorite","Spread","Home Spread Odds","Away Spread Odds","O/U","Over Odds","Under Odds","Home Score","Away Score","H_GP","A_GP","H_OffRtg","A_OffRtg","H_DefRtg","A_DefRtg","H_OREB%","A_OREB%","H_DREB%","A_DREB%","H_TOV%","A_TOV%","H_STL%","A_STL%","H_TS%","A_TS%","H_dTS%","A_dTS%","H_PACE","A_PACE","H_REST","A_REST"])
+    indexesVisited = []
+    for index, row in bets.iterrows():
+        print (str(index) + "/" + str(len(bets.index)) + " games")
+        for i, r in stats.iterrows():
+            if (i in indexesVisited):
+                continue
+            if (abs(datetime.date(int(row["Date"].split(", ")[1].split()[2]), monthToInt(row["Date"].split(", ")[1].split()[1]), int(row["Date"].split(", ")[1].split()[0])) - datetime.date(int(r["Date"].split("/")[2]), int(r["Date"].split("/")[0]), int(r["Date"].split("/")[1]))).days <= 1 and standardizeTeamName(row["Home"]) == standardizeTeamName(r["Home"]) and standardizeTeamName(row["Away"]) == standardizeTeamName(r["Away"])):
+                indexesVisited.append(i)
+                for col in bets.columns:
+                    if (col == "Home" or col == "Away"):
+                        A.addCellToRow(standardizeTeamName(row[col]))
+                    elif (col not in ["Season","url"]):
+                        A.addCellToRow(row[col])
+                for col in stats.columns:
+                    if (col not in ["Date","Home","Away"]):
+                        A.addCellToRow(r[col])
+                A.appendRow()
+                break
     if (writeToCsv):
         A.dictToCsv(write_path)
     return (A)

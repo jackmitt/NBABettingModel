@@ -7,8 +7,8 @@ from os.path import exists
 
 ## Scrapes regular season closing betting lines from oddsportal (consensus average) for all seasons since 2008/2009 and saves them to a csv - Make sure you have chromedriver.exe for the correct version of Chrome
 ## Take out the covid bubble games yourself manually
-def historicOdds(A, yearStart, yearEnd):
-    # A = Database(["Season","Date","Home","Away","Home ML","Away ML","Favorite","Spread","Home Spread Odds","Away Spread Odds","O/U","Over Odds","Under Odds","Home Score","Away Score"])
+def historicOdds(yearStart, yearEnd):
+    A = Database(["Season","Date","Home","Away","Home ML","Away ML","Favorite","Spread","Home Spread Odds","Away Spread Odds","O/U","Over Odds","Under Odds","Home Score","Away Score"])
     seasons = []
     for i in range(yearStart, yearEnd+1):
         seasons.append(str(i) + "-" + str(i+1))
