@@ -40,8 +40,8 @@ class Database:
     def printRow(self):
         print(self.tempRow)
 
-        def reset(self):
-            self.tempRow = []
-            self.dict = {}
-            for key in list(self.dict.keys()):
-                self.dict[key] = []
+    def reset(self):
+        self.tempRow = []
+        self.dict = {}
+        for key in list(self.dict.keys()):
+            self.dict[key] = []
