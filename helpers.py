@@ -18,6 +18,16 @@ class Database:
     def getLength(self):
         return (len(list(self.dict.keys())[0]))
 
+    def getDict(self):
+        return (self.dict)
+
+    def getDataFrame(self):
+        self.df = pd.DataFrame.from_dict(self.dict)
+        return(self.df)
+
+    def getCell(self, col, index):
+        return (self.dict[col][index])
+
     def initDictFromCsv(self, path):
         self.dict = pd.read_csv(path, encoding = "ISO-8859-1").to_dict(orient="list")
 
@@ -137,6 +147,14 @@ def monthToInt(month):
         return (4)
     if ('may' in month):
         return (5)
+    if ('jun' in month):
+        return (6)
+    if ('jul' in month):
+        return (7)
+    if ('aug' in month):
+        return (8)
+    if ('sept' in month):
+        return (9)
     if ('oct' in month):
         return (10)
     if ('nov' in month):
