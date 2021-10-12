@@ -177,17 +177,28 @@ def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combine
         cols.append(x + "OREB%")
         cols.append(x + "TOV%")
         cols.append(x + "TS%")
+        cols.append(x + "REST")
         cols.append(x + "PACE*Rtg")
         cols.append(x + "PACE*OREB%")
         cols.append(x + "PACE*TOV%")
         cols.append(x + "PACE*TS%")
     A = Database(cols)
     train = pd.read_csv(train_path, encoding = "ISO-8859-1")
-    rtgAvg = np.average(train["H_OffRtg"].to_list().extend(train["A_OffRtg"].to_list()))
-    orebAvg = np.average(train["H_OREB%"].to_list().extend(train["A_OREB%"].to_list()))
-    tovAvg = np.average(train["H_TOV%"].to_list().extend(train["A_TOV%"].to_list()))
-    tsAvg = np.average(train["H_TS%"].to_list().extend(train["A_TS%"].to_list()))
-    paceAvg = np.average(train["H_PACE"].to_list().extend(train["A_PACE"].to_list()))
+    a = train["H_OffRtg"].to_list()
+    a.extend(train["A_OffRtg"].to_list())
+    rtgAvg = np.average(a)
+    a = train["H_OREB%"].to_list()
+    a.extend(train["A_OREB%"].to_list())
+    orebAvg = np.average(a)
+    a = train["H_TOV%"].to_list()
+    a.extend(train["A_TOV%"].to_list())
+    tovAvg = np.average(a)
+    a = train["H_TS%"].to_list()
+    a.extend(train["A_TS%"].to_list())
+    tsAvg = np.average(a)
+    a = train["H_PACE"].to_list()
+    a.extend(train["A_PACE"].to_list())
+    paceAvg = np.average(a)
     for index, row in train.iterrows():
         A.addCellToRow(row["Spread"])
         A.addCellToRow(row["O/U"])
@@ -196,6 +207,7 @@ def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combine
             A.addCellToRow(float(row["H_OREB%"]) + 100 - float(row["A_DREB%"]) - orebAvg)
             A.addCellToRow(float(row["H_TOV%"]) + float(row["A_STL%"]) - tovAvg)
             A.addCellToRow(float(row["H_TS%"]) + float(row["A_dTS%"]) - tsAvg)
+            A.addCellToRow(row["H_REST"])
             A.addCellToRow((float(row["H_OffRtg"]) + float(row["A_DefRtg"]) - rtgAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
             A.addCellToRow((float(row["H_OREB%"]) + 100 - float(row["A_DREB%"]) - orebAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
             A.addCellToRow((float(row["H_TOV%"]) + float(row["A_STL%"]) - tovAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
@@ -204,6 +216,7 @@ def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combine
             A.addCellToRow(float(row["A_OREB%"]) + 100 - float(row["H_DREB%"]) - orebAvg)
             A.addCellToRow(float(row["A_TOV%"]) + float(row["H_STL%"]) - tovAvg)
             A.addCellToRow(float(row["A_TS%"]) + float(row["H_dTS%"]) - tsAvg)
+            A.addCellToRow(row["A_REST"])
             A.addCellToRow((float(row["A_OffRtg"]) + float(row["H_DefRtg"]) - rtgAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
             A.addCellToRow((float(row["A_OREB%"]) + 100 - float(row["H_DREB%"]) - orebAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
             A.addCellToRow((float(row["A_TOV%"]) + float(row["H_STL%"]) - tovAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
@@ -213,6 +226,7 @@ def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combine
             A.addCellToRow(float(row["A_OREB%"]) + 100 - float(row["H_DREB%"]) - orebAvg)
             A.addCellToRow(float(row["A_TOV%"]) + float(row["H_STL%"]) - tovAvg)
             A.addCellToRow(float(row["A_TS%"]) + float(row["H_dTS%"]) - tsAvg)
+            A.addCellToRow(row["A_REST"])
             A.addCellToRow((float(row["A_OffRtg"]) + float(row["H_DefRtg"]) - rtgAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
             A.addCellToRow((float(row["A_OREB%"]) + 100 - float(row["H_DREB%"]) - orebAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
             A.addCellToRow((float(row["A_TOV%"]) + float(row["H_STL%"]) - tovAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
@@ -221,32 +235,52 @@ def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combine
             A.addCellToRow(float(row["H_OREB%"]) + 100 - float(row["A_DREB%"]) - orebAvg)
             A.addCellToRow(float(row["H_TOV%"]) + float(row["A_STL%"]) - tovAvg)
             A.addCellToRow(float(row["H_TS%"]) + float(row["A_dTS%"]) - tsAvg)
+            A.addCellToRow(row["H_REST"])
             A.addCellToRow((float(row["H_OffRtg"]) + float(row["A_DefRtg"]) - rtgAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
             A.addCellToRow((float(row["H_OREB%"]) + 100 - float(row["A_DREB%"]) - orebAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
             A.addCellToRow((float(row["H_TOV%"]) + float(row["A_STL%"]) - tovAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
             A.addCellToRow((float(row["H_TS%"]) + float(row["A_dTS%"]) - tsAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
         A.appendRow()
     df = A.getDataFrame()
-    modelDict = {}
-    for col in df.columns:
-        if (("Fav_" in col or "Dog_" in col) and "PACE" not in col):
-            modelDict[col] = LinearRegression(fit_intercept = False).fit(X = df["Spread"].to_numpy().reshape(-1,1), y = df[col].to_numpy().reshape(-1,1))
-        elif ("PACE" in col):
-            modelDict[col] = LinearRegression(fit_intercept = False).fit(X = df["O/U"].to_numpy().reshape(-1,1), y = df[col].to_numpy().reshape(-1,1))
-    cols = ["Date","Favorite","Dog","FavHF","Spread","Fav Odds","Dog Odds","O/U","Over Odds","Under Odds","Home Score","Away Score"]
     statCols = []
-    for x in ["Fav_","Dog_"]:
-        statCols.append(x + "Rtg_aboveAvg")
-        statCols.append(x + "OREB%_aboveAvg")
-        statCols.append(x + "TOV%_aboveAvg")
-        statCols.append(x + "TS%_aboveAvg")
-        statCols.append(x + "PACE*Rtg_aboveAvg")
-        statCols.append(x + "PACE*OREB%_aboveAvg")
-        statCols.append(x + "PACE*TOV%_aboveAvg")
-        statCols.append(x + "PACE*TS%_aboveAvg")
-    B = Database(cols.extend(statCols))
+    #just diffs rn, the _aboveAvg part only is true after the regression, easier to just name it this now
+    statCols.append("Rtg_diff_aboveAvg")
+    statCols.append("OREB%_diff_aboveAvg")
+    statCols.append("TOV%_diff_aboveAvg")
+    statCols.append("TS%_diff_aboveAvg")
+    statCols.append("REST_diff_aboveAvg")
+    statCols.append("PACE*Rtg_total_aboveAvg")
+    statCols.append("PACE*OREB%_total_aboveAvg")
+    statCols.append("PACE*TOV%_total_aboveAvg")
+    statCols.append("PACE*TS%_total_aboveAvg")
+    interDict = {}
+    for col in statCols:
+        interDict[col] = []
+    for index, row in df.iterrows():
+        interDict["Rtg_diff_aboveAvg"].append(row["Fav_Rtg"] - row["Dog_Rtg"])
+        interDict["OREB%_diff_aboveAvg"].append(row["Fav_OREB%"] - row["Dog_OREB%"])
+        interDict["TOV%_diff_aboveAvg"].append(row["Fav_TOV%"] - row["Dog_TOV%"])
+        interDict["TS%_diff_aboveAvg"].append(row["Fav_TS%"] - row["Dog_TS%"])
+        interDict["REST_diff_aboveAvg"].append(row["Fav_REST"] - row["Dog_REST"])
+        interDict["PACE*Rtg_total_aboveAvg"].append(row["Fav_PACE*Rtg"] + row["Dog_PACE*Rtg"])
+        interDict["PACE*OREB%_total_aboveAvg"].append(row["Fav_PACE*OREB%"] + row["Dog_PACE*OREB%"])
+        interDict["PACE*TOV%_total_aboveAvg"].append(row["Fav_PACE*TOV%"] + row["Dog_PACE*TOV%"])
+        interDict["PACE*TS%_total_aboveAvg"].append(row["Fav_PACE*TS%"] + row["Dog_PACE*TS%"])
+    modelDict = {}
+    for col in statCols:
+        if ("PACE" not in col):
+            modelDict[col] = LinearRegression(fit_intercept = False).fit(X = df["Spread"].to_numpy().reshape(-1,1), y = np.array(interDict[col]).reshape(-1,1))
+        else:
+            modelDict[col] = LinearRegression(fit_intercept = False).fit(X = df["O/U"].to_numpy().reshape(-1,1), y = np.array(interDict[col]).reshape(-1,1))
+    cols = ["Date","Favorite","Dog","FavHF","Spread","Fav Odds","Dog Odds","O/U","Over Odds","Under Odds","Fav Score","Dog Score","binSpread","binTotal"]
+    cols.extend(statCols)
+    B = Database(cols)
     for index, row in train.iterrows():
         B.addCellToRow(row["Date"])
+        if ("OT" in row["Away Score"]):
+            awayScore = int(row["Away Score"].split(" OT")[0])
+        else:
+            awayScore = int(row["Away Score"])
         if (row["Home"] == standardizeTeamName(row["Favorite"])):
             B.addCellToRow(row["Home"])
             B.addCellToRow(row["Away"])
@@ -254,6 +288,23 @@ def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combine
             B.addCellToRow(row["Spread"])
             B.addCellToRow(row["Home Spread Odds"])
             B.addCellToRow(row["Away Spread Odds"])
+            B.addCellToRow(row["O/U"])
+            B.addCellToRow(row["Over Odds"])
+            B.addCellToRow(row["Under Odds"])
+            B.addCellToRow(row["Home Score"])
+            B.addCellToRow(row["Away Score"])
+            if (int(row["Home Score"]) - float(row["Spread"]) > awayScore):
+                B.addCellToRow(1)
+            elif (int(row["Home Score"]) - float(row["Spread"]) < awayScore):
+                B.addCellToRow(0)
+            else:
+                B.addCellToRow(np.nan)
+            if (int(row["Home Score"]) + awayScore > float(row["O/U"])):
+                B.addCellToRow(1)
+            elif (int(row["Home Score"]) + awayScore < float(row["O/U"])):
+                B.addCellToRow(0)
+            else:
+                B.addCellToRow(np.nan)
         else:
             B.addCellToRow(row["Away"])
             B.addCellToRow(row["Home"])
@@ -261,15 +312,177 @@ def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combine
             B.addCellToRow(row["Spread"])
             B.addCellToRow(row["Away Spread Odds"])
             B.addCellToRow(row["Home Spread Odds"])
-        B.addCellToRow(row["O/U"])
-        B.addCellToRow(row["Over Odds"])
-        B.addCellToRow(row["Under Odds"])
-        B.addCellToRow(row["Home Score"])
-        B.addCellToRow(row["Away Score"])
+            B.addCellToRow(row["O/U"])
+            B.addCellToRow(row["Over Odds"])
+            B.addCellToRow(row["Under Odds"])
+            B.addCellToRow(row["Away Score"])
+            B.addCellToRow(row["Home Score"])
+            if (awayScore - float(row["Spread"]) > int(row["Home Score"])):
+                B.addCellToRow(1)
+            elif (awayScore - float(row["Spread"]) < int(row["Home Score"])):
+                B.addCellToRow(0)
+            else:
+                B.addCellToRow(np.nan)
+            if (int(row["Home Score"]) + awayScore > float(row["O/U"])):
+                B.addCellToRow(1)
+            elif (int(row["Home Score"]) + awayScore < float(row["O/U"])):
+                B.addCellToRow(0)
+            else:
+                B.addCellToRow(np.nan)
         for col in statCols:
             if ("PACE" not in col):
-                B.addCellToRow(df.at[index, col.split("_aboveAvg")[0]] - modelDict[col.split("_aboveAvg")[0]].predict(row["Spread"].reshape(1,-1))[0][0])
+                tempArray = np.array(row["Spread"])
+                B.addCellToRow(interDict[col][index] - modelDict[col].predict(tempArray.reshape(1,-1))[0][0])
             else:
-                B.addCellToRow(df.at[index, col.split("_aboveAvg")[0]] - modelDict[col.split("_aboveAvg")[0]].predict(row["O/U"].reshape(1,-1))[0][0])
+                tempArray = np.array(row["O/U"])
+                B.addCellToRow(interDict[col][index] - modelDict[col].predict(tempArray.reshape(1,-1))[0][0])
         B.appendRow()
     B.dictToCsv("./csv_data/mid_manipulation/logistic_regression_ready_train.csv")
+
+
+    test = pd.read_csv(test_path, encoding = "ISO-8859-1")
+    cols = ["Spread","O/U",]
+    for x in ["Fav_","Dog_"]:
+        cols.append(x + "Rtg")
+        cols.append(x + "OREB%")
+        cols.append(x + "TOV%")
+        cols.append(x + "TS%")
+        cols.append(x + "REST")
+        cols.append(x + "PACE*Rtg")
+        cols.append(x + "PACE*OREB%")
+        cols.append(x + "PACE*TOV%")
+        cols.append(x + "PACE*TS%")
+    A = Database(cols)
+    for index, row in test.iterrows():
+        A.addCellToRow(row["Spread"])
+        A.addCellToRow(row["O/U"])
+        if (standardizeTeamName(row["Favorite"]) == row["Home"]):
+            A.addCellToRow(float(row["H_OffRtg"]) + float(row["A_DefRtg"]) - rtgAvg)
+            A.addCellToRow(float(row["H_OREB%"]) + 100 - float(row["A_DREB%"]) - orebAvg)
+            A.addCellToRow(float(row["H_TOV%"]) + float(row["A_STL%"]) - tovAvg)
+            A.addCellToRow(float(row["H_TS%"]) + float(row["A_dTS%"]) - tsAvg)
+            A.addCellToRow(row["H_REST"])
+            A.addCellToRow((float(row["H_OffRtg"]) + float(row["A_DefRtg"]) - rtgAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["H_OREB%"]) + 100 - float(row["A_DREB%"]) - orebAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["H_TOV%"]) + float(row["A_STL%"]) - tovAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["H_TS%"]) + float(row["A_dTS%"]) - tsAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
+            A.addCellToRow(float(row["A_OffRtg"]) + float(row["H_DefRtg"]) - rtgAvg)
+            A.addCellToRow(float(row["A_OREB%"]) + 100 - float(row["H_DREB%"]) - orebAvg)
+            A.addCellToRow(float(row["A_TOV%"]) + float(row["H_STL%"]) - tovAvg)
+            A.addCellToRow(float(row["A_TS%"]) + float(row["H_dTS%"]) - tsAvg)
+            A.addCellToRow(row["A_REST"])
+            A.addCellToRow((float(row["A_OffRtg"]) + float(row["H_DefRtg"]) - rtgAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["A_OREB%"]) + 100 - float(row["H_DREB%"]) - orebAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["A_TOV%"]) + float(row["H_STL%"]) - tovAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["A_TS%"]) + float(row["H_dTS%"]) - tsAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
+        else:
+            A.addCellToRow(float(row["A_OffRtg"]) + float(row["H_DefRtg"]) - rtgAvg)
+            A.addCellToRow(float(row["A_OREB%"]) + 100 - float(row["H_DREB%"]) - orebAvg)
+            A.addCellToRow(float(row["A_TOV%"]) + float(row["H_STL%"]) - tovAvg)
+            A.addCellToRow(float(row["A_TS%"]) + float(row["H_dTS%"]) - tsAvg)
+            A.addCellToRow(row["A_REST"])
+            A.addCellToRow((float(row["A_OffRtg"]) + float(row["H_DefRtg"]) - rtgAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["A_OREB%"]) + 100 - float(row["H_DREB%"]) - orebAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["A_TOV%"]) + float(row["H_STL%"]) - tovAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["A_TS%"]) + float(row["H_dTS%"]) - tsAvg) * (float(row["A_PACE"]) + float(row["H_PACE"]) - paceAvg))
+            A.addCellToRow(float(row["H_OffRtg"]) + float(row["A_DefRtg"]) - rtgAvg)
+            A.addCellToRow(float(row["H_OREB%"]) + 100 - float(row["A_DREB%"]) - orebAvg)
+            A.addCellToRow(float(row["H_TOV%"]) + float(row["A_STL%"]) - tovAvg)
+            A.addCellToRow(float(row["H_TS%"]) + float(row["A_dTS%"]) - tsAvg)
+            A.addCellToRow(row["H_REST"])
+            A.addCellToRow((float(row["H_OffRtg"]) + float(row["A_DefRtg"]) - rtgAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["H_OREB%"]) + 100 - float(row["A_DREB%"]) - orebAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["H_TOV%"]) + float(row["A_STL%"]) - tovAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
+            A.addCellToRow((float(row["H_TS%"]) + float(row["A_dTS%"]) - tsAvg) * (float(row["H_PACE"]) + float(row["A_PACE"]) - paceAvg))
+        A.appendRow()
+    df = A.getDataFrame()
+    statCols = []
+    #just diffs rn, the _aboveAvg part only is true after the regression, easier to just name it this now
+    statCols.append("Rtg_diff_aboveAvg")
+    statCols.append("OREB%_diff_aboveAvg")
+    statCols.append("TOV%_diff_aboveAvg")
+    statCols.append("TS%_diff_aboveAvg")
+    statCols.append("REST_diff_aboveAvg")
+    statCols.append("PACE*Rtg_total_aboveAvg")
+    statCols.append("PACE*OREB%_total_aboveAvg")
+    statCols.append("PACE*TOV%_total_aboveAvg")
+    statCols.append("PACE*TS%_total_aboveAvg")
+    interDict = {}
+    for col in statCols:
+        interDict[col] = []
+    for index, row in df.iterrows():
+        interDict["Rtg_diff_aboveAvg"].append(row["Fav_Rtg"] - row["Dog_Rtg"])
+        interDict["OREB%_diff_aboveAvg"].append(row["Fav_OREB%"] - row["Dog_OREB%"])
+        interDict["TOV%_diff_aboveAvg"].append(row["Fav_TOV%"] - row["Dog_TOV%"])
+        interDict["TS%_diff_aboveAvg"].append(row["Fav_TS%"] - row["Dog_TS%"])
+        interDict["REST_diff_aboveAvg"].append(row["Fav_REST"] - row["Dog_REST"])
+        interDict["PACE*Rtg_total_aboveAvg"].append(row["Fav_PACE*Rtg"] + row["Dog_PACE*Rtg"])
+        interDict["PACE*OREB%_total_aboveAvg"].append(row["Fav_PACE*OREB%"] + row["Dog_PACE*OREB%"])
+        interDict["PACE*TOV%_total_aboveAvg"].append(row["Fav_PACE*TOV%"] + row["Dog_PACE*TOV%"])
+        interDict["PACE*TS%_total_aboveAvg"].append(row["Fav_PACE*TS%"] + row["Dog_PACE*TS%"])
+    cols = ["Date","Favorite","Dog","FavHF","Spread","Fav Odds","Dog Odds","O/U","Over Odds","Under Odds","Fav Score","Dog Score","binSpread","binTotal"]
+    cols.extend(statCols)
+    B = Database(cols)
+    for index, row in test.iterrows():
+        B.addCellToRow(row["Date"])
+        if ("OT" in row["Away Score"]):
+            awayScore = int(row["Away Score"].split(" OT")[0])
+        else:
+            awayScore = int(row["Away Score"])
+        if (row["Home"] == standardizeTeamName(row["Favorite"])):
+            B.addCellToRow(row["Home"])
+            B.addCellToRow(row["Away"])
+            B.addCellToRow(1)
+            B.addCellToRow(row["Spread"])
+            B.addCellToRow(row["Home Spread Odds"])
+            B.addCellToRow(row["Away Spread Odds"])
+            B.addCellToRow(row["O/U"])
+            B.addCellToRow(row["Over Odds"])
+            B.addCellToRow(row["Under Odds"])
+            B.addCellToRow(row["Home Score"])
+            B.addCellToRow(row["Away Score"])
+            if (int(row["Home Score"]) - float(row["Spread"]) > awayScore):
+                B.addCellToRow(1)
+            elif (int(row["Home Score"]) - float(row["Spread"]) < awayScore):
+                B.addCellToRow(0)
+            else:
+                B.addCellToRow(np.nan)
+            if (int(row["Home Score"]) + awayScore > float(row["O/U"])):
+                B.addCellToRow(1)
+            elif (int(row["Home Score"]) + awayScore < float(row["O/U"])):
+                B.addCellToRow(0)
+            else:
+                B.addCellToRow(np.nan)
+        else:
+            B.addCellToRow(row["Away"])
+            B.addCellToRow(row["Home"])
+            B.addCellToRow(0)
+            B.addCellToRow(row["Spread"])
+            B.addCellToRow(row["Away Spread Odds"])
+            B.addCellToRow(row["Home Spread Odds"])
+            B.addCellToRow(row["O/U"])
+            B.addCellToRow(row["Over Odds"])
+            B.addCellToRow(row["Under Odds"])
+            B.addCellToRow(row["Away Score"])
+            B.addCellToRow(row["Home Score"])
+            if (awayScore - float(row["Spread"]) > int(row["Home Score"])):
+                B.addCellToRow(1)
+            elif (awayScore - float(row["Spread"]) < int(row["Home Score"])):
+                B.addCellToRow(0)
+            else:
+                B.addCellToRow(np.nan)
+            if (int(row["Home Score"]) + awayScore > float(row["O/U"])):
+                B.addCellToRow(1)
+            elif (int(row["Home Score"]) + awayScore < float(row["O/U"])):
+                B.addCellToRow(0)
+            else:
+                B.addCellToRow(np.nan)
+        for col in statCols:
+            if ("PACE" not in col):
+                tempArray = np.array(row["Spread"])
+                B.addCellToRow(interDict[col][index] - modelDict[col].predict(tempArray.reshape(1,-1))[0][0])
+            else:
+                tempArray = np.array(row["O/U"])
+                B.addCellToRow(interDict[col][index] - modelDict[col].predict(tempArray.reshape(1,-1))[0][0])
+        B.appendRow()
+    B.dictToCsv("./csv_data/mid_manipulation/logistic_regression_ready_test.csv")
