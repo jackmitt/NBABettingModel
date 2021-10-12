@@ -5,6 +5,8 @@ import datetime
 from helpers import standardizeTeamName
 from helpers import monthToInt
 from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
 
 #merges the entire match onto one row with stats denoted home and away
 def mergeMatches(read_path = './csv_data/raw/advanced_stats.csv', write_path = "./csv_data/mid_manipulation/merged_matches.csv", writeToCsv = True):
@@ -170,6 +172,7 @@ def trainTestSplit(season = "2016/2017", data_path = "./csv_data/mid_manipulatio
     data.iloc[trainRows].to_csv(data_path.split(".csv")[0] + "_train.csv", index = False)
     data.iloc[testRows].to_csv(data_path.split(".csv")[0] + "_test.csv", index = False)
 
+#formats the data for binary response model
 def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combined_data_train.csv", test_path = "./csv_data/mid_manipulation/combined_data_test.csv"):
     cols = ["Spread","O/U",]
     for x in ["Fav_","Dog_"]:
@@ -486,3 +489,46 @@ def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combine
                 B.addCellToRow(interDict[col][index] - modelDict[col].predict(tempArray.reshape(1,-1))[0][0])
         B.appendRow()
     B.dictToCsv("./csv_data/mid_manipulation/logistic_regression_ready_test.csv")
+
+#does logistic regression
+def logisticRegression(train_path = "./csv_data/mid_manipulation/logistic_regression_ready_train.csv", test_path = "./csv_data/mid_manipulation/logistic_regression_ready_test.csv"):
+    train = pd.read_csv(train_path, encoding = "ISO-8859-1")
+    test = pd.read_csv(test_path, encoding = "ISO-8859-1")
+
+    predictions = []
+    spreadTrain = train[train["binSpread"].notna()]
+    y_train = spreadTrain["binSpread"]
+    xCols = ["FavHF","Rtg_diff_aboveAvg","OREB%_diff_aboveAvg","TOV%_diff_aboveAvg","TS%_diff_aboveAvg","REST_diff_aboveAvg"]
+    scaler = StandardScaler()
+    X_train = pd.DataFrame(spreadTrain, columns = xCols)
+    X_train[xCols] = scaler.fit_transform(X_train[xCols])
+    X_test = pd.DataFrame(test, columns = xCols)
+    X_test[xCols] = scaler.transform(X_test[xCols])
+    model = LogisticRegression(max_iter = 100000, C = 999999999)
+    model.fit(X = X_train, y = y_train)
+    for p in model.predict_proba(X_test):
+        if (model.classes_[1] == 1):
+            predictions.append(p[1])
+        else:
+            predictions.append(p[0])
+    test["Spread PFITS"] = predictions
+
+    predictions = []
+    totalTrain = train[train["binTotal"].notna()]
+    y_train = totalTrain["binTotal"]
+    xCols = ["PACE*Rtg_total_aboveAvg","PACE*OREB%_total_aboveAvg","PACE*TOV%_total_aboveAvg","PACE*TS%_total_aboveAvg"]
+    scaler = StandardScaler()
+    X_train = pd.DataFrame(totalTrain, columns = xCols)
+    X_train[xCols] = scaler.fit_transform(X_train[xCols])
+    X_test = pd.DataFrame(test, columns = xCols)
+    X_test[xCols] = scaler.transform(X_test[xCols])
+    model = LogisticRegression(max_iter = 100000, C = 999999999)
+    model.fit(X = X_train, y = y_train)
+    for p in model.predict_proba(X_test):
+        if (model.classes_[1] == 1):
+            predictions.append(p[1])
+        else:
+            predictions.append(p[0])
+    test["Total PFITS"] = predictions
+
+    test.to_csv("./csv_data/mid_manipulation/predictions.csv", index = False)
