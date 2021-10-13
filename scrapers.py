@@ -88,8 +88,8 @@ def historicOdds(yearStart, yearEnd):
             for option in soup.find(id="odds-data-table").find_all("div"):
                 try:
                     diff = abs(americanToDecimal(float(option.find_all("a")[1].text)) - americanToDecimal(float(option.find_all("a")[2].text)))
-                    sp1 = americanToDecimal(float(option.find_all("a")[1].text)))
-                    sp2 = americanToDecimal(float(option.find_all("a")[2].text)))
+                    sp1 = americanToDecimal(float(option.find_all("a")[1].text))
+                    sp2 = americanToDecimal(float(option.find_all("a")[2].text))
                 except:
                     continue
                 if (diff < minDiff and sp1 > 1.87 and sp2 > 1.87):
@@ -125,8 +125,8 @@ def historicOdds(yearStart, yearEnd):
             for option in soup.find(id="odds-data-table").find_all("div"):
                 try:
                     diff = abs(americanToDecimal(float(option.find_all("a")[1].text)) - americanToDecimal(float(option.find_all("a")[2].text)))
-                    sp1 = americanToDecimal(float(option.find_all("a")[1].text)))
-                    sp2 = americanToDecimal(float(option.find_all("a")[2].text)))
+                    sp1 = americanToDecimal(float(option.find_all("a")[1].text))
+                    sp2 = americanToDecimal(float(option.find_all("a")[2].text))
                 except:
                     continue
                 if (diff < minDiff and sp1 > 1.85 and sp2 > 1.85):
