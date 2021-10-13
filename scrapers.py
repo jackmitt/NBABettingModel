@@ -5,11 +5,12 @@ import numpy as np
 import time
 from os.path import exists
 from prediction_evaluation import americanToDecimal
+from helpers import Database
 
 ## Scrapes regular season closing betting lines from oddsportal (consensus average) for all seasons since 2008/2009 and saves them to a csv - Make sure you have chromedriver.exe for the correct version of Chrome
 ## Take out the covid bubble games yourself manually
 def historicOdds(yearStart, yearEnd):
-    A = Database(["Season","Date","Home","Away","Home ML","Away ML","Favorite","Spread","Home Spread Odds","Away Spread Odds","O/U","Over Odds","Under Odds","Home Score","Away Score"])
+    A = Database(["Season","Date","Home","Away","Home ML","Away ML","Favorite","Spread","Home Spread Odds","Away Spread Odds","O/U","Over Odds","Under Odds","Home Score","Away Score","url"])
     seasons = []
     for i in range(yearStart, yearEnd+1):
         seasons.append(str(i) + "-" + str(i+1))
@@ -87,9 +88,11 @@ def historicOdds(yearStart, yearEnd):
             for option in soup.find(id="odds-data-table").find_all("div"):
                 try:
                     diff = abs(americanToDecimal(float(option.find_all("a")[1].text)) - americanToDecimal(float(option.find_all("a")[2].text)))
+                    sp1 = americanToDecimal(float(option.find_all("a")[1].text)))
+                    sp2 = americanToDecimal(float(option.find_all("a")[2].text)))
                 except:
                     continue
-                if (diff < minDiff):
+                if (diff < minDiff and sp1 > 1.87 and sp2 > 1.87):
                     bestSpread = option
                     minDiff = diff
             #favorite
@@ -118,15 +121,17 @@ def historicOdds(yearStart, yearEnd):
             browser.find_element_by_xpath("//*[@id='bettype-tabs']/ul/li[5]/a/span").click()
             time.sleep(2)
             soup = BeautifulSoup(browser.page_source, 'html.parser')
-            bestPayout = -1
+            minDiff = 99999
             for option in soup.find(id="odds-data-table").find_all("div"):
                 try:
-                    payout = float(option.find(class_="avg chunk-odd-payout").text.split("%")[0])
+                    diff = abs(americanToDecimal(float(option.find_all("a")[1].text)) - americanToDecimal(float(option.find_all("a")[2].text)))
+                    sp1 = americanToDecimal(float(option.find_all("a")[1].text)))
+                    sp2 = americanToDecimal(float(option.find_all("a")[2].text)))
                 except:
                     continue
-                if (payout > bestPayout):
+                if (diff < minDiff and sp1 > 1.85 and sp2 > 1.85):
                     bestTotal = option
-                    bestPayout = payout
+                    minDiff = diff
             #O/U
             try:
                 A.addCellToRow(bestTotal.find("a").text.split("+")[1])
