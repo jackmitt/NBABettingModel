@@ -162,7 +162,7 @@ def historicOdds(yearStart, yearEnd):
     except:
         browser.close()
         print ("SCRAPER FAILED. RESTARTING...")
-        historicOdds(A, yearStart, yearEnd)
+        historicOdds(yearStart, yearEnd)
 
     A.dictToCsv("./csv_data/bettingLines.csv")
     broswer.close()
