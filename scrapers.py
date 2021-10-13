@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import time
 from os.path import exists
+from prediction_evaluation import americanToDecimal
 
 ## Scrapes regular season closing betting lines from oddsportal (consensus average) for all seasons since 2008/2009 and saves them to a csv - Make sure you have chromedriver.exe for the correct version of Chrome
 ## Take out the covid bubble games yourself manually
@@ -82,15 +83,15 @@ def historicOdds(yearStart, yearEnd):
                 continue
             time.sleep(2)
             soup = BeautifulSoup(browser.page_source, 'html.parser')
-            bestPayout = -1
+            minDiff = 99999
             for option in soup.find(id="odds-data-table").find_all("div"):
                 try:
-                    payout = float(option.find(class_="avg chunk-odd-payout").text.split("%")[0])
+                    diff = abs(americanToDecimal(float(option.find_all("a")[1].text)) - americanToDecimal(float(option.find_all("a")[2].text)))
                 except:
                     continue
-                if (payout > bestPayout):
+                if (diff < minDiff):
                     bestSpread = option
-                    bestPayout = payout
+                    minDiff = diff
             #favorite
             try:
                 if ("+" in bestSpread.find("a").text):
