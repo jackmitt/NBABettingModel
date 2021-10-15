@@ -157,7 +157,7 @@ def historicOdds(yearStart, yearEnd):
             A.addCellToRow(game)
             A.appendRow()
             counter += 1
-            if (counter % 30 == 1):
+            if (counter % 3 == 1):
                 A.dictToCsv("./csv_data/bettingLines.csv")
     except:
         browser.close()
@@ -165,7 +165,7 @@ def historicOdds(yearStart, yearEnd):
         historicOdds(yearStart, yearEnd)
 
     A.dictToCsv("./csv_data/bettingLines.csv")
-    broswer.close()
+    browser.close()
 
 ## Scrapes traditional and advanced box scores from nba.com since 2005/06 season
 
