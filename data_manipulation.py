@@ -8,6 +8,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 
+###################To replicate the model, these functions must be run in order. Data must exist at the correct path - run scrapers first
+
 #merges the entire match onto one row with stats denoted home and away
 def mergeMatches(read_path = './csv_data/raw/advanced_stats.csv', write_path = "./csv_data/mid_manipulation/merged_matches.csv", writeToCsv = True):
     stats = pd.read_csv(read_path, encoding = "ISO-8859-1")
@@ -58,6 +60,8 @@ def preMatchAverages(read_path = './csv_data/mid_manipulation/merged_matches.csv
     stats = pd.read_csv(read_path, encoding = "ISO-8859-1")
     A = Database(["Date","Home","Away","H_GP","A_GP","H_OffRtg","A_OffRtg","H_DefRtg","A_DefRtg","H_OREB%","A_OREB%","H_DREB%","A_DREB%","H_TOV%","A_TOV%","H_STL%","A_STL%","H_TS%","A_TS%","H_dTS%","A_dTS%","H_PACE","A_PACE","H_REST","A_REST"])
     for index, row in stats.iterrows():
+        if (datetime.date(int(row["Date"].split("/")[2]), int(row["Date"].split("/")[0]), int(row["Date"].split("/")[1])) < datetime.date(2008, 10, 1)):
+            continue
         if (index == 0 or int(row["Date"].split("/")[0]) - 3 > int(stats.at[index-1,"Date"].split("/")[0])):
             seasonDict = {}
         if (row["Home"] not in seasonDict):
@@ -128,6 +132,9 @@ def combineStatsAndBettingData(stats_path = './csv_data/mid_manipulation/pre_mat
 
     for index, row in bets.iterrows():
         print (str(index) + "/" + str(len(bets.index)) + " games")
+        #skips covid bubble games
+        if (abs(datetime.date(int(row["Date"].split(", ")[1].split()[2]), monthToInt(row["Date"].split(", ")[1].split()[1]), int(row["Date"].split(", ")[1].split()[0])) - datetime.date(2020, 8, 1)).days < 30):
+            continue
         if (index == 0 or abs(datetime.date(int(row["Date"].split(", ")[1].split()[2]), monthToInt(row["Date"].split(", ")[1].split()[1]), int(row["Date"].split(", ")[1].split()[0])) - datetime.date(int(bets.at[index-1,"Date"].split(", ")[1].split()[2]), monthToInt(bets.at[index-1,"Date"].split(", ")[1].split()[1]), int(bets.at[index-1,"Date"].split(", ")[1].split()[0]))).days > 100):
             if (index == 0):
                 startIndex = 0
@@ -136,12 +143,19 @@ def combineStatsAndBettingData(stats_path = './csv_data/mid_manipulation/pre_mat
             for i in range(startIndex, len(stats.index)):
                 if (i == startIndex):
                     continue
+                if (i == len(stats.index) - 1):
+                    endIndex = len(stats.index) - 1
                 if (abs(datetime.date(int(stats.at[i,"Date"].split("/")[2]), int(stats.at[i,"Date"].split("/")[0]), int(stats.at[i,"Date"].split("/")[1])) - datetime.date(int(stats.at[i-1,"Date"].split("/")[2]), int(stats.at[i-1,"Date"].split("/")[0]), int(stats.at[i-1,"Date"].split("/")[1]))).days > 100):
                     endIndex = i
                     break
-
         for i in range(startIndex, endIndex):
             if (abs(datetime.date(int(row["Date"].split(", ")[1].split()[2]), monthToInt(row["Date"].split(", ")[1].split()[1]), int(row["Date"].split(", ")[1].split()[0])) - datetime.date(int(stats.at[i,"Date"].split("/")[2]), int(stats.at[i,"Date"].split("/")[0]), int(stats.at[i,"Date"].split("/")[1]))).days <= 1 and standardizeTeamName(row["Home"]) == standardizeTeamName(stats.at[i,"Home"]) and standardizeTeamName(row["Away"]) == standardizeTeamName(stats.at[i,"Away"])):
+                if (row["O/U"] < 150):
+                    A.trashRow()
+                    break
+                elif (row["Spread"] > 30):
+                    A.trashRow()
+                    break
                 for col in bets.columns:
                     if (col == "Home" or col == "Away"):
                         A.addCellToRow(standardizeTeamName(row[col]))
@@ -157,23 +171,31 @@ def combineStatsAndBettingData(stats_path = './csv_data/mid_manipulation/pre_mat
     return (A)
 
 #give it the first test season in the form of 2007/2008
-def trainTestSplit(season = "2016/2017", data_path = "./csv_data/mid_manipulation/combined_data.csv"):
+def trainValidationTestSplit(valSeason = "2015/2016", testSeason = "2018/2019", data_path = "./csv_data/mid_manipulation/combined_data.csv"):
     data = pd.read_csv(data_path, encoding = "ISO-8859-1")
-    split = False
+    val = False
+    test = False
     trainRows = []
+    valRows = []
     testRows = []
     for index, row in data.iterrows():
-        if (int(row["Date"].split(", ")[1].split()[2]) == int(season.split("/")[1])):
-            split = True
-        if (split):
+        if (int(row["Date"].split(", ")[1].split()[2]) == int(valSeason.split("/")[1])):
+            val = True
+        elif (int(row["Date"].split(", ")[1].split()[2]) == int(testSeason.split("/")[1])):
+            test = True
+            val = False
+        if (val):
+            valRows.append(index)
+        elif (test):
             testRows.append(index)
         else:
             trainRows.append(index)
     data.iloc[trainRows].to_csv(data_path.split(".csv")[0] + "_train.csv", index = False)
     data.iloc[testRows].to_csv(data_path.split(".csv")[0] + "_test.csv", index = False)
+    data.iloc[valRows].to_csv(data_path.split(".csv")[0] + "_validation.csv", index = False)
 
 #formats the data for binary response model
-def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combined_data_train.csv", test_path = "./csv_data/mid_manipulation/combined_data_test.csv"):
+def binClassificationTransform(testSet, train_path = "./csv_data/mid_manipulation/combined_data_train.csv", test_path = "./csv_data/mid_manipulation/combined_data_test.csv", val_path = "./csv_data/mid_manipulation/combined_data_validation.csv"):
     cols = ["Spread","O/U",]
     for x in ["Fav_","Dog_"]:
         cols.append(x + "Rtg")
@@ -342,8 +364,10 @@ def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combine
         B.appendRow()
     B.dictToCsv("./csv_data/mid_manipulation/logistic_regression_ready_train.csv")
 
-
-    test = pd.read_csv(test_path, encoding = "ISO-8859-1")
+    if (testSet == "validation"):
+        test = pd.read_csv(val_path, encoding = "ISO-8859-1")
+    else:
+        test = pd.read_csv(test_path, encoding = "ISO-8859-1")
     cols = ["Spread","O/U",]
     for x in ["Fav_","Dog_"]:
         cols.append(x + "Rtg")
@@ -488,12 +512,20 @@ def binClassificationTransform(train_path = "./csv_data/mid_manipulation/combine
                 tempArray = np.array(row["O/U"])
                 B.addCellToRow(interDict[col][index] - modelDict[col].predict(tempArray.reshape(1,-1))[0][0])
         B.appendRow()
-    B.dictToCsv("./csv_data/mid_manipulation/logistic_regression_ready_test.csv")
+    if (testSet == "validation"):
+        B.dictToCsv("./csv_data/mid_manipulation/logistic_regression_ready_validation.csv")
+    else:
+        B.dictToCsv("./csv_data/mid_manipulation/logistic_regression_ready_test.csv")
 
 #does logistic regression
-def logisticRegression(train_path = "./csv_data/mid_manipulation/logistic_regression_ready_train.csv", test_path = "./csv_data/mid_manipulation/logistic_regression_ready_test.csv"):
+def logisticRegression(testSet, train_path = "./csv_data/mid_manipulation/logistic_regression_ready_train.csv", test_path = "./csv_data/mid_manipulation/logistic_regression_ready_test.csv", val_path = "./csv_data/mid_manipulation/logistic_regression_ready_validation.csv"):
     train = pd.read_csv(train_path, encoding = "ISO-8859-1")
-    test = pd.read_csv(test_path, encoding = "ISO-8859-1")
+    if (testSet == "validation"):
+        test = pd.read_csv(val_path, encoding = "ISO-8859-1")
+    elif (testSet == "test"):
+        test = pd.read_csv(test_path, encoding = "ISO-8859-1")
+    elif (testSet == "train"):
+        test = pd.read_csv(train_path, encoding = "ISO-8859-1")
 
     predictions = []
     spreadTrain = train[train["binSpread"].notna()]
@@ -531,4 +563,9 @@ def logisticRegression(train_path = "./csv_data/mid_manipulation/logistic_regres
             predictions.append(p[0])
     test["Total PFITS"] = predictions
 
-    test.to_csv("./csv_data/mid_manipulation/predictions.csv", index = False)
+    if (testSet == "validation"):
+        test.to_csv("./csv_data/mid_manipulation/predictions_validation.csv", index = False)
+    elif (testSet == "test"):
+        test.to_csv("./csv_data/mid_manipulation/predictions_test.csv", index = False)
+    elif (testSet == "train"):
+        test.to_csv("./csv_data/mid_manipulation/predictions_train.csv", index = False)

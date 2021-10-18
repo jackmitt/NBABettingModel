@@ -2,7 +2,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
-data = read.csv("C:/Users/JackMitt/Documents/NBABettingModel/csv_data/mid_manipulation/predictions.csv")
+data = read.csv("C:/Users/JackMitt/Documents/NBABettingModel/csv_data/mid_manipulation/predictions_train.csv")
 
 KellyDiv = 1
 
@@ -82,6 +82,6 @@ ahdf = data.frame(predictedRate,actualRate,n)
 
 
 
-ggplot(ahdf, aes(y=actualRate, x=predictedRate, color = n, size = n)) + geom_point() + geom_abline(slope=1, intercept=0) + xlim(0.4,0.6) + ylim(0.4,0.6)
+ggplot(ahdf, aes(y=actualRate, x=predictedRate, color = n, size = n)) + geom_point() + geom_abline(slope=1, intercept=0) + xlim(0,1) + ylim(0,1)
 
-ggplot(oudf, aes(y=actualRate, x=predictedRate, color = n, size = n)) + geom_point() + geom_abline(slope=1, intercept=0) + xlim(0.4,0.6) + ylim(0.4,0.6)
+ggplot(oudf, aes(y=actualRate, x=predictedRate, color = n, size = n)) + geom_point() + geom_abline(slope=1, intercept=0) + xlim(0,1) + ylim(0,1)
