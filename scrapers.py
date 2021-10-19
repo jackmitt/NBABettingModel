@@ -210,8 +210,14 @@ def nbaBoxScores(A, boxScoreType = "traditional"):
 
 ##Using this site since oddsportal gives faulty numbers sometimes and I am fed up
 def sbrOdds():
-    date = datetime.date(2006, 10, 31)
-    A = Database(["Date","Home","Away","Favorite","Spread","Home Spread Odds","Away Spread Odds","O/U","Over Odds","Under Odds","Home Score","Away Score"])
+    if (exists("./sbrOdds.csv")):
+        A = Database()
+        A.initDictFromCsv("./sbrOdds.csv")
+        date = datetime.date(int(A.getCol("Date")[len(A.getCol("Date")) - 1].split("-")[0]),int(A.getCol("Date")[len(A.getCol("Date")) - 1].split("-")[1]),int(A.getCol("Date")[len(A.getCol("Date")) - 1].split("-")[2]))
+        date = date + datetime.timedelta(days=1)
+    else:
+        A = Database(["Date","Home","Away","Favorite","Spread","Home Spread Odds","Away Spread Odds","O/U","Over Odds","Under Odds","Home Score","Away Score"])
+        date = datetime.date(2006, 10, 31)
     browser = webdriver.Chrome(executable_path='chromedriver.exe')
     counter = 0
     browser.get(date.strftime("https://www.sportsbookreview.com/betting-odds/nba-basketball/merged/?date=20061031"))
@@ -227,55 +233,64 @@ def sbrOdds():
         if (len(soup.find_all(class_="noEvents-1qOEP")) > 0):
             date = date + datetime.timedelta(days=1)
             continue
-        table = soup.find(class_="eventsByLeague-2wGLV")
-        for i in range(len(table.find_all(class_="compactBettingOptionContainer-VVPjh"))):
-            row = table.find_all(class_="compactBettingOptionContainer-VVPjh")[i]
-            A.addCellToRow(date)
-            A.addCellToRow(row.find_all(class_="participantBox-3ar9Y")[1].text)
-            A.addCellToRow(row.find_all(class_="participantBox-3ar9Y")[0].text)
-            odds = table.find_all(class_="container-341kQ")[1+i]
-            top = odds.find_all(class_="pointer-2j4Dk margin-2SxKQ")[0]
-            bot = odds.find_all(class_="pointer-2j4Dk margin-2SxKQ")[1]
-            if ("-" in top.find("span").text):
+        try:
+            table = soup.find(class_="eventsByLeague-2wGLV")
+            for i in range(len(table.find_all(class_="compactBettingOptionContainer-VVPjh"))):
+                row = table.find_all(class_="compactBettingOptionContainer-VVPjh")[i]
+                A.addCellToRow(date)
+                A.addCellToRow(row.find_all(class_="participantBox-3ar9Y")[1].text)
+                A.addCellToRow(row.find_all(class_="participantBox-3ar9Y")[0].text)
+                odds = table.find_all(class_="container-341kQ")[1+i]
+                top = odds.find_all(class_="pointer-2j4Dk margin-2SxKQ")[0]
+                bot = odds.find_all(class_="pointer-2j4Dk margin-2SxKQ")[1]
+                if ("-" in top.find("span").text):
+                    try:
+                        A.addCellToRow(row.find_all(class_="participantBox-3ar9Y")[0].text)
+                        if ("½" in top.find("span").text.split("-")[1]):
+                            A.addCellToRow(top.find("span").text.split("-")[1].split("½")[0] + ".5")
+                        else:
+                            A.addCellToRow(top.find("span").text.split("-")[1])
+                        A.addCellToRow(top.find_all("span")[1].text)
+                        A.addCellToRow(-220 - int(top.find_all("span")[1].text))
+                        if ("½" in bot.find("span").text):
+                            A.addCellToRow(bot.find("span").text.split("½")[0] + ".5")
+                        else:
+                            A.addCellToRow(bot.find("span").text)
+                        A.addCellToRow(bot.find_all("span")[1].text)
+                        A.addCellToRow(-220 - int(bot.find_all("span")[1].text))
+                    except:
+                        A.trashRow()
+                        continue
+                else:
+                    try:
+                        A.addCellToRow(row.find_all(class_="participantBox-3ar9Y")[1].text)
+                        if ("½" in bot.find("span").text.split("-")[1]):
+                            A.addCellToRow(bot.find("span").text.split("-")[1].split("½")[0] + ".5")
+                        else:
+                            A.addCellToRow(bot.find("span").text.split("-")[1])
+                        A.addCellToRow(bot.find_all("span")[1].text)
+                        A.addCellToRow(-220 - int(bot.find_all("span")[1].text))
+                        if ("½" in top.find("span").text):
+                            A.addCellToRow(top.find("span").text.split("½")[0] + ".5")
+                        else:
+                            A.addCellToRow(top.find("span").text)
+                        A.addCellToRow(top.find_all("span")[1].text)
+                        A.addCellToRow(-220 - int(top.find_all("span")[1].text))
+                    except:
+                        A.trashRow()
+                        continue
                 try:
-                    A.addCellToRow(row.find_all(class_="participantBox-3ar9Y")[0].text)
-                    if ("½" in top.find("span").text.split("-")[1]):
-                        A.addCellToRow(top.find("span").text.split("-")[1].split("½")[0] + ".5")
-                    else:
-                        A.addCellToRow(top.find("span").text.split("-")[1])
-                    A.addCellToRow(top.find_all("span")[1].text)
-                    A.addCellToRow(-220 - int(top.find_all("span")[1].text))
-                    if ("½" in bot.find("span").text):
-                        A.addCellToRow(bot.find("span").text.split("½")[0] + ".5")
-                    else:
-                        A.addCellToRow(bot.find("span").text)
-                    A.addCellToRow(bot.find_all("span")[1].text)
-                    A.addCellToRow(-220 - int(bot.find_all("span")[1].text))
+                    A.addCellToRow(row.find_all(class_="scores-1-KV5 undefined")[1].text)
+                    A.addCellToRow(row.find_all(class_="scores-1-KV5 undefined")[0].text)
                 except:
                     A.trashRow()
                     continue
-            else:
-                try:
-                    A.addCellToRow(row.find_all(class_="participantBox-3ar9Y")[1].text)
-                    if ("½" in bot.find("span").text.split("-")[1]):
-                        A.addCellToRow(bot.find("span").text.split("-")[1].split("½")[0] + ".5")
-                    else:
-                        A.addCellToRow(bot.find("span").text.split("-")[1])
-                    A.addCellToRow(bot.find_all("span")[1].text)
-                    A.addCellToRow(-220 - int(bot.find_all("span")[1].text))
-                    if ("½" in top.find("span").text):
-                        A.addCellToRow(top.find("span").text.split("½")[0] + ".5")
-                    else:
-                        A.addCellToRow(top.find("span").text)
-                    A.addCellToRow(top.find_all("span")[1].text)
-                    A.addCellToRow(-220 - int(top.find_all("span")[1].text))
-                except:
-                    A.trashRow()
-                    continue
-            A.addCellToRow(row.find_all(class_="scores-1-KV5 undefined")[1].text)
-            A.addCellToRow(row.find_all(class_="scores-1-KV5 undefined")[0].text)
-            A.appendRow()
-            counter += 1
-            if (counter % 10 == 1):
-                A.dictToCsv("./csv_data/raw/sbrOdds.csv")
+                A.appendRow()
+                counter += 1
+                if (counter % 10 == 1):
+                    A.dictToCsv("./sbrOdds.csv")
+        except:
+            print ("SCRAPER RESTARTING")
+            browser.close()
+            sbrOdds()
         date = date + datetime.timedelta(days=1)

@@ -59,6 +59,9 @@ class Database:
     def printRow(self):
         print(self.tempRow)
 
+    def printDict(self):
+        print(self.dict)
+
     def reset(self):
         self.tempRow = []
         self.dict = {}
