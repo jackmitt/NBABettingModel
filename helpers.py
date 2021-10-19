@@ -105,7 +105,7 @@ def standardizeTeamName(name):
         return ('MIN')
     if ("detroit" in name or name == 'det'):
         return ('DET')
-    if ("knick" in name or name == 'nyk'):
+    if ("knick" in name or name == 'nyk' or 'new york' in name):
         return ('NYK')
     if ("utah" in name or name == 'uta'):
         return ('UTA')
@@ -125,11 +125,11 @@ def standardizeTeamName(name):
         return ('OKC')
     if ("orlando" in name or name == 'orl'):
         return ('ORL')
-    if ("nets" in name or name == 'njn' or name == 'bkn'):
+    if ("nets" in name or name == 'njn' or name == 'bkn' or "brooklyn" in name or "new jersey" in name):
         return ('BKN')
     if ("washington" in name or name == 'was'):
         return ('WAS')
-    if ("76" in name or name == 'phi'):
+    if ("76" in name or name == 'phi' or "philidelphia" in name):
         return ('PHI')
     if ("san antonio" in name or name == 'sas'):
         return ('SAS')

@@ -124,19 +124,21 @@ def preMatchAverages(read_path = './csv_data/mid_manipulation/merged_matches.csv
     return (A)
 
 #matches the betting data with the pre match averages
-def combineStatsAndBettingData(stats_path = './csv_data/mid_manipulation/pre_match_averages.csv', bets_path = './csv_data/raw/bettingLines.csv', write_path = './csv_data/mid_manipulation/combined_data.csv', writeToCsv = True):
+def combineStatsAndBettingData(stats_path = './csv_data/mid_manipulation/pre_match_averages.csv', bets_path = './csv_data/raw/sbrOdds.csv', write_path = './csv_data/mid_manipulation/combined_data.csv', writeToCsv = True):
     bets = pd.read_csv(bets_path, encoding = "ISO-8859-1")
     stats = pd.read_csv(stats_path, encoding = "ISO-8859-1")
 
-    A = Database(["Date","Home","Away","Home ML","Away ML","Favorite","Spread","Home Spread Odds","Away Spread Odds","O/U","Over Odds","Under Odds","Home Score","Away Score","H_GP","A_GP","H_OffRtg","A_OffRtg","H_DefRtg","A_DefRtg","H_OREB%","A_OREB%","H_DREB%","A_DREB%","H_TOV%","A_TOV%","H_STL%","A_STL%","H_TS%","A_TS%","H_dTS%","A_dTS%","H_PACE","A_PACE","H_REST","A_REST"])
+    A = Database(["Date","Home","Away","Favorite","Spread","Home Spread Odds","Away Spread Odds","O/U","Over Odds","Under Odds","Home Score","Away Score","H_GP","A_GP","H_OffRtg","A_OffRtg","H_DefRtg","A_DefRtg","H_OREB%","A_OREB%","H_DREB%","A_DREB%","H_TOV%","A_TOV%","H_STL%","A_STL%","H_TS%","A_TS%","H_dTS%","A_dTS%","H_PACE","A_PACE","H_REST","A_REST"])
 
     for index, row in bets.iterrows():
         print (str(index) + "/" + str(len(bets.index)) + " games")
-        #skips covid bubble games
-        if (abs(datetime.date(int(row["Date"].split(", ")[1].split()[2]), monthToInt(row["Date"].split(", ")[1].split()[1]), int(row["Date"].split(", ")[1].split()[0])) - datetime.date(2020, 8, 1)).days < 30):
+        if (datetime.date(int(row["Date"].split("/")[2]), int(row["Date"].split("/")[0]), int(row["Date"].split("/")[1])) < datetime.date(2008, 10, 1)):
             continue
-        if (index == 0 or abs(datetime.date(int(row["Date"].split(", ")[1].split()[2]), monthToInt(row["Date"].split(", ")[1].split()[1]), int(row["Date"].split(", ")[1].split()[0])) - datetime.date(int(bets.at[index-1,"Date"].split(", ")[1].split()[2]), monthToInt(bets.at[index-1,"Date"].split(", ")[1].split()[1]), int(bets.at[index-1,"Date"].split(", ")[1].split()[0]))).days > 100):
-            if (index == 0):
+        #skips covid bubble games
+        if (abs(datetime.date(int(row["Date"].split("/")[2]), int(row["Date"].split("/")[0]), int(row["Date"].split("/")[1])) - datetime.date(2020, 8, 1)).days < 30):
+            continue
+        if (index == 0 or abs(datetime.date(int(row["Date"].split("/")[2]), int(row["Date"].split("/")[0]), int(row["Date"].split("/")[1])) - datetime.date(int(bets.at[index-1,"Date"].split("/")[2]), int(bets.at[index-1,"Date"].split("/")[0]), int(bets.at[index-1,"Date"].split("/")[1]))).days > 40):
+            if (index == 0 or (int(row["Date"].split("/")[2]) == 2008 and int(row["Date"].split("/")[0]) == 10)):
                 startIndex = 0
             else:
                 startIndex = endIndex
@@ -149,18 +151,23 @@ def combineStatsAndBettingData(stats_path = './csv_data/mid_manipulation/pre_mat
                     endIndex = i
                     break
         for i in range(startIndex, endIndex):
-            if (abs(datetime.date(int(row["Date"].split(", ")[1].split()[2]), monthToInt(row["Date"].split(", ")[1].split()[1]), int(row["Date"].split(", ")[1].split()[0])) - datetime.date(int(stats.at[i,"Date"].split("/")[2]), int(stats.at[i,"Date"].split("/")[0]), int(stats.at[i,"Date"].split("/")[1]))).days <= 1 and standardizeTeamName(row["Home"]) == standardizeTeamName(stats.at[i,"Home"]) and standardizeTeamName(row["Away"]) == standardizeTeamName(stats.at[i,"Away"])):
-                if (row["O/U"] < 150):
-                    A.trashRow()
-                    break
-                elif (row["Spread"] > 30):
-                    A.trashRow()
-                    break
+            if (abs(datetime.date(int(row["Date"].split("/")[2]), int(row["Date"].split("/")[0]), int(row["Date"].split("/")[1])) - datetime.date(int(stats.at[i,"Date"].split("/")[2]), int(stats.at[i,"Date"].split("/")[0]), int(stats.at[i,"Date"].split("/")[1]))).days <= 1 and standardizeTeamName(row["Home"]) == standardizeTeamName(stats.at[i,"Home"]) and standardizeTeamName(row["Away"]) == standardizeTeamName(stats.at[i,"Away"])):
+                # if (float(row["O/U"]) < 150):
+                #     A.trashRow()
+                #     break
+                # elif (float(row["Spread"]) > 30):
+                #     A.trashRow()
+                #     break
                 for col in bets.columns:
-                    if (col == "Home" or col == "Away"):
+                    if (col == "Home" or col == "Away" or col == "Favorite"):
                         A.addCellToRow(standardizeTeamName(row[col]))
                     elif (col not in ["Season","url"]):
-                        A.addCellToRow(row[col])
+                        if ('u' in str(row[col])):
+                            A.addCellToRow(row[col].split('u')[1])
+                        elif ('o' in str(row[col])):
+                            A.addCellToRow(row[col].split('o')[1])
+                        else:
+                            A.addCellToRow(row[col])
                 for col in stats.columns:
                     if (col not in ["Date","Home","Away"]):
                         A.addCellToRow(stats.at[i,col])

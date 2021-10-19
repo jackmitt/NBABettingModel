@@ -4,4 +4,4 @@ from scrapers import nbaBoxScores
 import data_manipulation as dm
 import prediction_evaluation as pe
 
-sbrOdds()
+dm.combineStatsAndBettingData()
